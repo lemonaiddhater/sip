@@ -24,7 +24,7 @@ A lightweight Python toolkit for network diagnostics and protocol analysis.
 ## Windows (PowerShell)
 
 ```powershell
-git clone 
+git clone https://github.com/lemonaiddhater/sip
 cd sip
 pip install -r requirements.txt
 python sip.py
@@ -35,18 +35,18 @@ python sip.py
 ## Linux
 
 ```bash
-git clone 
+git clone https://github.com/lemonaiddhater/sip
 cd sip
 pip install -r requirements.txt
 python sip.py
 ```
 
----
+--- 
 
 ## macOS
 
 ```bash
-git clone 
+git clone https://github.com/lemonaiddhater/sip
 cd sip
 pip install -r requirements.txt
 python sip.py
@@ -60,7 +60,7 @@ python sip.py
 pkg update -y
 pkg install git python -y
 
-git clone 
+git clone https://github.com/lemonaiddhater/sip
 cd sip
 pip install -r requirements.txt
 python sip.py
@@ -74,7 +74,7 @@ python sip.py
 apk update
 apk add git python3 py3-pip
 
-git clone 
+git clone https://github.com/lemonaiddhater/sip
 cd sip
 pip install -r requirements.txt
 python sip.py
