@@ -98,12 +98,14 @@ BANNER = r"""
 STATE_FILE = ".session.json"
 LOG_FILE   = ".access.log"
 
+
 USERS = {
     "phantom": {"pass": "pha", "limit": 5000},
     "ninja":   {"pass": "nin", "limit": 2000},
     "cat":     {"pass": "cat", "limit": 500},
     "guest":   {"pass": "sip", "limit": 50},
 }
+
 
 DEFAULT_SIP = {
     "user": "lafla@cox.net",
@@ -115,13 +117,12 @@ DEFAULT_SIP = {
 
 TOLL_FREE_PREFIXES = {
     "1800", "1888", "1877", "1866", "1855", "1844", "1833",
-    "1800", "1888", "1877", "1866", "1855", "1844", "1833",
-    "1900",  
+    "1900",
 }
 
 
 class Session:
-  
+
     def __init__(self):
         self.user: Optional[str] = None
         self.count: int = 0
@@ -130,48 +131,82 @@ class Session:
     def _load(self):
         if not os.path.exists(STATE_FILE):
             return
+
         try:
-            with open(STATE_FILE) as f:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            if data.get("user") in USERS:
-                self.user = data["user"]
-                self.count = data.get("count", 0)
-        except (json.JSONDecodeError, KeyError):
-            pass
+
+            user = data.get("user")
+            count = data.get("count", 0)
+
+            if user in USERS:
+                self.user = user
+
+                if isinstance(count, int) and count >= 0:
+                    self.count = count
+                else:
+                    self.count = 0
+
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            self.user = None
+            self.count = 0
 
     def save(self):
-        with open(STATE_FILE, "w") as f:
-            json.dump({"user": self.user, "count": self.count}, f)
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "user": self.user,
+                    "count": self.count
+                },
+                f,
+                indent=2
+            )
 
     def log(self, action: str):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(LOG_FILE, "a") as f:
+
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(f"[{ts}] {self.user} | {action}\n")
 
     @property
     def remaining(self) -> int:
         if not self.user:
             return 0
-        return USERS[self.user]["limit"] - self.count
+
+        return max(0, USERS[self.user]["limit"] - self.count)
 
     @property
     def exhausted(self) -> bool:
         return self.remaining <= 0
 
     def use(self) -> bool:
-        if self.exhausted:
+        if not self.user or self.exhausted:
             return False
+
         self.count += 1
         self.save()
         return True
 
     def authenticate(self, key: str) -> bool:
-        for uname, info in USERS.items():
-            if key.upper() == info["pass"]:
-                self.user = uname
+        if not isinstance(key, str):
+            return False
+
+        # Strip accidental spaces/newlines and make the key case-insensitive.
+        entered_key = key.strip().casefold()
+
+        for username, info in USERS.items():
+            stored_key = str(info["pass"]).strip().casefold()
+
+            if hmac.compare_digest(entered_key, stored_key):
+                self.user = username
                 self.count = 0
+
                 self.save()
+                self.log("authenticated")
+
                 return True
+
+        self.log("authentication failed")
         return False
 
 
