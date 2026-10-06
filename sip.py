@@ -99,7 +99,6 @@ STATE_FILE = ".session.json"
 LOG_FILE   = ".access.log"
 
 USERS = {
-  
     "phantom": {"pass": "pha", "limit": 5000},
     "ninja":   {"pass": "nin", "limit": 2000},
     "cat":     {"pass": "cat", "limit": 500},
